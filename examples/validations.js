@@ -1,14 +1,10 @@
-var Mongorito, Tweet, tweet,
-  __hasProp = Object.prototype.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+var Mongorito, Tweet, tweet;
 
 Mongorito = require('../lib/mongorito');
 
 Mongorito.connect('databaseName', ['127.0.0.1:27017']);
 
-Tweet = (function(_super) {
-
-  __extends(Tweet, _super);
+Tweet = (function() {
 
   function Tweet() {
     Tweet.__super__.constructor.call(this, 'tweets');
@@ -24,7 +20,7 @@ Tweet = (function(_super) {
 
   return Tweet;
 
-})(Mongorito.Model);
+})();
 
 Tweet = Mongorito.bake(Tweet);
 

@@ -45,7 +45,11 @@ String.prototype.camelize = function() {
 
 String.prototype.underscore = function() {
 	return this.trim().toLowerCase().replace(/[\s]+/g, '_');
-}`
+}
+
+var hasProp = Object.prototype.hasOwnProperty,
+  	extendsClass = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; }
+`
 
 class Mongorito
 	@disconnect: ->
@@ -72,6 +76,7 @@ class Mongorito
 			Client.auth username, password if username
 	
 	@bake: (model) ->
+		extendsClass(model, MongoritoModel)
 		object = new model
 		model.collection = object.collection
 		model.model = model

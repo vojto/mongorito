@@ -15,7 +15,7 @@ Mongorito = require 'mongorito'
 
 Mongorito.connect 'database', ['127.0.0.1:27017'], 'user', 'password'
 
-class Post extends Mongorito.Model
+class Post
 	constructor: ->
 		super 'posts' # telling our collection name
 
@@ -43,6 +43,43 @@ Post.find { title : 'Some title!' }, (err, posts) ->
 # Interested?
 
 Check out **examples** folder, it has a lot of code, which describes all parts of Mongorito.
+
+# For pure JS folks
+
+Nothing special, you will just have to use dirtier syntax, but that's ok.
+
+```javascript
+var Mongorito = require('mongorito');
+
+Mongorito.connect('database', ['127.0.0.1:27017'], 'user', 'password');
+
+var Post = (function(){
+	
+	function Post(){ // constructor
+		Post.__super__.constructor.call(this, 'posts');
+	}
+	
+	Post.prototype.validateTitle = function(callback){ # declare methods, like this
+		if(! this.title) {
+			callback(false);
+		} else {
+			callback(true);
+		}
+	}
+	
+})();
+
+Post = Mongorito.bake(Post); # Now, we are ready to go!
+
+Post.find(function(err, posts){
+	var length = posts.length;
+	for(var i = 0; i < length; i++) {
+		posts[i].remove(function(){ // posts[i] is an instance of Post class, so you can operate with it as a model
+			// removed
+		});
+	}
+});
+```
 
 # License 
 
