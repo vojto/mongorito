@@ -48,7 +48,16 @@ String.prototype.underscore = function() {
 }
 
 var hasProp = Object.prototype.hasOwnProperty,
-  	extendsClass = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; }
+  	extendsClass = function(child, parent) {
+		for (var key in parent) {
+			if (hasProp.call(parent, key)) child[key] = parent[key]; 
+		}
+		function ctor(proto) { this.constructor = child; for(var method in proto) { this[method] = proto[method]; } }
+		ctor.prototype = parent.prototype;
+		child.prototype = new ctor(child.prototype);
+		child.__super__ = parent.prototype;
+		return child; 
+	}
 `
 
 class Mongorito
@@ -80,12 +89,14 @@ class Mongorito
 		object = new model
 		model.collection = object.collection
 		model.model = model
+		model
+
 
 class MongoritoModel
 	constructor: (@collection = '') ->
 	
 	fields: ->
-		notFields = ['constructor', 'save', 'collection', 'create', 'fields', 'update', 'remove']
+		notFields = ['constructor', 'save', 'collection', 'create', 'fields', 'update', 'remove', 'beforeCreate', 'aroundCreate', 'afterCreate', 'beforeUpdate', 'aroundUpdate', 'afterUpdate']
 		fields = {}
 		for field of @
 			fields[field] = @[field] if -1 is notFields.indexOf field
@@ -283,6 +294,9 @@ class MongoritoModel
 			do that.afterRemove if that['afterRemove']
 			process.nextTick ->
 				callback err if callback
+
+
+class GenericModel extends MongoritoModel
 
 module.exports=
 	connect: Mongorito.connect
