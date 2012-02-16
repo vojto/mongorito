@@ -59,7 +59,7 @@ var Post = (function(){
 		Post.__super__.constructor.call(this, 'posts');
 	}
 	
-	Post.prototype.validateTitle = function(callback){ # declare methods, like this
+	Post.prototype.validateTitle = function(callback){ // declare methods, like this
 		if(! this.title) {
 			callback(false);
 		} else {
@@ -69,7 +69,7 @@ var Post = (function(){
 	
 })();
 
-Post = Mongorito.bake(Post); # Now, we are ready to go!
+Post = Mongorito.bake(Post); // Now, we are ready to go!
 
 Post.find(function(err, posts){
 	var length = posts.length;
