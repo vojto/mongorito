@@ -2,6 +2,16 @@
 
 *Awesome* MongoDB ODM for Node.js. Just take a look on its pretty models. Uses Mongolian for interacting with MongoDB.
 
+# Features
+
+- Define models, and operate with them just like usual objects, forget about documentation
+- Built-in caching, using [Memcacher](https://github.com/vdemedes/memcacher)
+- Based on Mongolian
+- Super-fast, lightweight, all codebase is in one file
+- Covered by tests
+- Used in production projects
+- Active development
+
 # Installation
 
 ```
@@ -14,6 +24,7 @@ npm install mongorito
 Mongorito = require 'mongorito'
 
 Mongorito.connect 'database', ['127.0.0.1:27017'], 'user', 'password'
+Mongorito.cache ['127.0.0.1:11211'] # optional, allows automatic, smart caching. It is just one line to enable it!
 
 class Post
 	constructor: ->
@@ -52,6 +63,7 @@ Nothing special, you will just have to use dirtier syntax, but that's ok.
 var Mongorito = require('mongorito');
 
 Mongorito.connect('database', ['127.0.0.1:27017'], 'user', 'password');
+Mongorito.cache(['127.0.0.1:11211']);
 
 var Post = (function(){
 	
@@ -80,6 +92,15 @@ Post.find(function(err, posts){
 	}
 });
 ```
+
+# Tests
+
+Tests made using Mocha. Run using:
+
+```
+cd tests && mocha *
+```
+
 
 # License 
 

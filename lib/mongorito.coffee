@@ -1,6 +1,8 @@
 mongolian = require 'mongolian'
 async = require 'async'
+memcacher = require 'memcacher'
 Client = undefined
+Cache = undefined
 
 `String.prototype.plural = function() {
 	var s = this.trim().toLowerCase();
@@ -84,6 +86,9 @@ class Mongorito
 				error: ->
 			Client.auth username, password if username
 	
+	@cache: (servers = []) ->
+		Cache = new memcacher servers
+	
 	@bake: (model) ->
 		extendsClass(model, MongoritoModel)
 		object = new model
@@ -102,22 +107,43 @@ class MongoritoModel
 			fields[field] = @[field] if -1 is notFields.indexOf field
 		fields
 	
+	@bakeModelsFromItems: (items, _model) ->
+		models = []
+		for item in items
+			item._id = item._id.toString()
+			model = new _model
+			model.collection = _model.collection
+			for field of item
+				model[field] = item[field]
+			models.push model
+		models
+	
 	@findById: (id, callback) ->
 		that = @
 		
-		Client.collection(@collection).find({ _id: new mongolian.ObjectId(id.toString()) }).toArray (err, item) ->
-			if item.length is 0
-				item = item[0]
-				item._id = item._id.toString()
-				model = new that.model
-				model.collection = that.collection
-				for field of item
-					model[field] = item[field]
+		query = (id, done) ->
+			Client.collection(that.collection).find({ _id: new mongolian.ObjectId(id.toString()) }).toArray (err, items) ->
+				process.nextTick ->
+					done err, items
+		
+		if not Cache
+			return query id, (err, items) ->
+				models = that.bakeModelsFromItems items, that.model
+				callback err, models[0]
+		
+		key = "#{ @collection }-#{ id.toString() }"
+		
+		Cache.get key, (err, result) ->
+			if not result
+				query id, (err, items) ->
+					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
+					models = that.bakeModelsFromItems items, that.model
+					process.nextTick ->
+						callback err, models
 			else
-				model = no
-			
-			process.nextTick ->
-				callback err, model
+				models = that.bakeModelsFromItems JSON.parse(result), that.model
+				process.nextTick ->
+					callback err, models
 	
 	@findWithOrderAndLimit: (criteria, order, limit, skip, callback) ->
 		if typeof criteria is 'object'
@@ -138,18 +164,29 @@ class MongoritoModel
 		skip = 0 if not skip
 		that = @
 		
-		Client.collection(@collection).find(criteria).sort(order).limit(limit).skip(skip).toArray (err, items) ->
-			models = []
-			for item in items
-				item._id = item._id.toString()
-				model = new that.model
-				model.collection = that.collection
-				for field of item
-					model[field] = item[field]
-				models.push model
-			
-			process.nextTick ->
-				callback err, models
+		query = (criteria, order, limit, skip, done) ->
+			Client.collection(that.collection).find(criteria).sort(order).limit(limit).skip(skip).toArray (err, items) ->
+				done err, items
+		
+		if not Cache
+			return query criteria, order, limit, skip, (err, items) ->
+				models = that.bakeModelsFromItems items, that.model
+				process.nextTick ->
+					callback err, models
+		
+		key = "#{ @collection }-order-#{ order }-limit-#{ limit }-skip-#{ skip }-#{ JSON.stringify(criteria) }"
+		
+		Cache.get key, (err, result) ->
+			if not result
+				query criteria, order, limit, skip, (err, items) ->
+					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
+					models = that.bakeModelsFromItems items, that.model
+					process.nextTick ->
+						callback err, models
+			else
+				models = that.bakeModelsFromItems JSON.parse(result), that.model
+				process.nextTick ->
+					callback err, models
 	
 	@findWithOrder: (criteria, order, callback) ->
 		if typeof criteria is 'object' and typeof order is 'function'
@@ -160,18 +197,29 @@ class MongoritoModel
 		
 		that = @
 		
-		Client.collection(@collection).find(criteria).sort(order).toArray (err, items) ->
-			models = []
-			for item in items
-				item._id = item._id.toString()
-				model = new that.model
-				model.collection = that.collection
-				for field of item
-					model[field] = item[field]
-				models.push model
-			
-			process.nextTick ->
-				callback err, models
+		query = (criteria, order, done) ->
+			Client.collection(that.collection).find(criteria).sort(order).toArray (err, items) ->
+				done err, items
+		
+		if not Cache
+			return query criteria, order, (err, items) ->
+				models = that.bakeModelsFromItems items, that.model
+				process.nextTick ->
+					callback err, models
+		
+		key = "#{ @collection }-order-#{ order }-#{ JSON.stringify(criteria) }"
+		
+		Cache.get key, (err, result) ->
+			if not result
+				query criteria, order, (err, items) ->
+					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
+					models = that.bakeModelsFromItems items, that.model
+					process.nextTick ->
+						callback err, models
+			else
+				models = that.bakeModelsFromItems JSON.parse(result), that.model
+				process.nextTick ->
+					callback err, models
 	
 	@findWithLimit: (criteria, limit, skip, callback) ->
 		if typeof criteria is 'number'
@@ -194,18 +242,30 @@ class MongoritoModel
 		
 		that = @
 		
-		Client.collection(@collection).find(criteria).limit(limit).skip(skip).toArray (err, items) ->
-			models = []
-			for item in items
-				item._id = item._id.toString()
-				model = new that.model
-				model.collection = that.collection
-				for field of item
-					model[field] = item[field]
-				models.push model
-			
-			process.nextTick ->
-				callback err, models
+		query = (criteria, limit, skip, done) ->
+			Client.collection(that.collection).find(criteria).limit(limit).skip(skip).toArray (err, items) ->
+				process.nextTick ->
+					done err, items
+		
+		if not Cache
+			return query criteria, limit, skip, (err, items) ->
+				models = that.bakeModelsFromItems items, that.model
+				process.nextTick ->
+					callback err, models
+		
+		key = "#{ @collection }-limit-#{ limit }-skip-#{ skip }-#{ JSON.stringify(criteria) }"
+		
+		Cache.get key, (err, result) ->
+			if not result
+				query criteria, limit, skip, (err, items) ->
+					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
+					models = that.bakeModelsFromItems items, that.model
+					process.nextTick ->
+						callback err, models
+			else
+				models = that.bakeModelsFromItems JSON.parse(result), that.model
+				process.nextTick ->
+					callback err, models
 	
 	@find: (criteria = {}, callback) ->
 		if typeof(criteria) is 'function'
@@ -214,22 +274,34 @@ class MongoritoModel
 		
 		that = @
 		
-		Client.collection(@collection).find(criteria).toArray (err, items) ->
-			models = []
-			for item in items
-				item._id = item._id.toString()
-				model = new that.model
-				model.collection = that.collection
-				for field of item
-					model[field] = item[field]
-				models.push model
-			
-			process.nextTick ->
-				callback err, models
+		query = (criteria, done) ->
+			Client.collection(that.collection).find(criteria).toArray (err, items) ->
+				process.nextTick ->
+					done err, items
+		
+		if not Cache
+			return query criteria, (err, items) ->
+				models = that.bakeModelsFromItems items, that.model
+				process.nextTick ->
+					callback err, models
+		
+		key = "#{ @collection }-#{ JSON.stringify(criteria) }"
+		
+		Cache.get key, (err, result) ->
+			if not result
+				query criteria, (err, items) ->
+					models = that.bakeModelsFromItems items, that.model
+					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
+						process.nextTick ->
+							callback err, models
+			else
+				models = that.bakeModelsFromItems JSON.parse(result), that.model
+				process.nextTick ->
+					callback err, models
 	
 	save: (callback) ->
 		that = @
-		fields = @fields
+		fields = do @fields
 		
 		notFields = ['constructor', 'save', 'collection', 'create', 'fields', 'update', 'remove', 'models']
 		keys = []
@@ -245,10 +317,11 @@ class MongoritoModel
 		, (results) ->
 			return callback yes, results if results.length > 0
 			
-			if fields._id
-				that.update callback, yes
-			else
-				that.create callback, yes
+			Cache.delByTag that.collection, ->
+				if fields._id
+					that.update callback, yes
+				else
+					that.create callback, yes
 		
 	create: (callback, fromSave = no) ->
 		object = @fields()
@@ -288,12 +361,12 @@ class MongoritoModel
 		do @beforeRemove if @['beforeRemove']
 		do @aroundRemove if @['aroundRemove']
 		that = @
-		
-		Client.collection(@collection).remove { _id: _id }, (err) ->
-			do that.aroundRemove if that['aroundRemove']
-			do that.afterRemove if that['afterRemove']
-			process.nextTick ->
-				callback err if callback
+		Cache.delByTag @collection, ->
+			Client.collection(that.collection).remove { _id: _id }, (err) ->
+				do that.aroundRemove if that['aroundRemove']
+				do that.afterRemove if that['afterRemove']
+				process.nextTick ->
+					callback err if callback
 
 
 class GenericModel extends MongoritoModel
@@ -301,5 +374,6 @@ class GenericModel extends MongoritoModel
 module.exports=
 	connect: Mongorito.connect
 	disconnect: Mongorito.disconnect
+	cache: Mongorito.cache
 	bake: Mongorito.bake
 	Model: MongoritoModel

@@ -1,12 +1,16 @@
 {
     "name": "mongorito",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"description": "ODM for MongoDB.",
 	"keywords": ["mongo", "mongodb"],
 	"author": "Vadim Demedes <sbioko@gmail.com>",
 	"dependencies": {
 		"async": "*",
-		"mongolian": "*"
+		"mongolian": "*",
+		"memcacher": "*"
+	},
+	"devDependencies": {
+		"should": "*"
 	},
 	"main": "index",
 	"engines": { "node": ">= 0.4.x" }
