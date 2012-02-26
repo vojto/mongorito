@@ -317,11 +317,13 @@ class MongoritoModel
 		, (results) ->
 			return callback yes, results if results.length > 0
 			
-			Cache.delByTag that.collection, ->
+			performOperation = ->
 				if fields._id
 					that.update callback, yes
 				else
 					that.create callback, yes
+			
+			if Cache then Cache.delByTag that.collection, performOperation else do performOperation
 		
 	create: (callback, fromSave = no) ->
 		object = @fields()
