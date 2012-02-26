@@ -79,6 +79,8 @@ var Post = (function(){
 		}
 	}
 	
+	return Post;
+	
 })();
 
 Post = Mongorito.bake(Post); // Now, we are ready to go!
