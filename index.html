@@ -58,15 +58,38 @@ Post.find { title : 'Some title!' }, (err, posts) ->
         # post is an instance of Post model, so you can perform usual methods on it
         post.remove ->
 </pre>
+		<h2>Examples</h2>
+		<p>You can find an up-to-date collection of examples in Mongorito's Github repository, in the <a href="https://github.com/vdemedes/mongorito/tree/master/examples">examples</a> folder.</p>
 		<div class="docs clearfix clear">
 			<h2 style="float:left;position:relative;top:-25px;margin-right:20px">Documentation</h2>
 			<div class="btn-group">
+				<a href="#connecting" class="btn">Connecting</a>
+				<a href="#defining" class="btn">Defining</a>
 				<a href="#finding" class="btn">Finding</a>
-				<a href="#" class="btn">Creating</a>
-				<a href="#" class="btn">Updating</a>
-				<a href="#" class="btn">Removing</a>
+				<a href="#creating" class="btn">Creating</a>
+				<a href="#updating" class="btn">Updating</a>
+				<a href="#removing" class="btn">Removing</a>
+				<a href="#hooking" class="btn">Hooking</a>
+				<a href="#validating" class="btn">Validating</a>
+				<a href="#caching" class="btn">Caching</a>
 			</div>
 		</div>
+		<a name="connecting" href="#connecting"><h2>Connecting</h2></a>
+		<p>This is how you can connect to one or many MongoDB databases:</p>
+		<pre class="prettyprint linenums">
+Mongorito = require 'Mongorito'
+
+Mongorito.connect 'databaseName', ['127.0.0.1:27017'], 'user', 'password' # array can contain uris to multiple servers
+</pre>
+		<a name="defining" href="#defining"><h2>Defining</h2></a>
+		<p>You can define model this way:</p>
+		<pre class="prettyprint linenums">
+class Post
+	constructor: ->
+		super 'posts' # telling Mongorito name of the collection
+	
+Post = Mongorito.bake Post # it would not be interesting without dark magic, right?
+</pre>
 		<a name="finding" href="#finding"><h2>Finding</h2></a>
 		<p>Let's take a walk and see how can you find documents, sort, limit and skip some of them. First, let's just find some documents without additional requirements:</p>
 		<pre class="prettyprint linenums">
@@ -75,12 +98,100 @@ Post.find (err, posts) ->
 </pre>
 		<p>Now, let's add some criteria:</p>
 		<pre class="prettyprint linenums">
-Post.find { title: 'I love Apple' }, (err, posts) ->
+Post.find title: 'I love Apple', (err, posts) ->
 	# posts is an array of all documents, who have "I love Apple" title
 </pre>
 		<p>What if we want to sort documents by their creation date?</p>
 		<pre class="prettyprint linenums">
-Post.find
+Post.findWithOrder _id: -1, (err, posts) ->
+	# posts is an array of all documents, sorted by _id
+</pre>
+		<p>Of course, sometimes we have to limit our results and do some pagination:</p>
+		<pre class="prettyprint linenums">
+Post.findWithLimit 5, 2, (err, posts) ->
+	# skipping first 2 documents, and getting only 5
+
+Post.findWithLimit title: 'I love Apple', 5, 2, (err, posts) ->
+	# skipping first 2, getting only 5 documents who have title "I love Apple"
+</pre>
+		<p>And sometimes we have to order and limit:</p>
+		<pre class="prettyprint linenums">
+Post.findWithOrderAndLimit { author: 'Steve' }, { _id: -1 }, 5, 2, (err, posts) ->
+	# finding documents with author "Steve", sorting them by _id, skipping first 2 and limiting result to 5 records
+</pre>
+		<p>Forgot to mention, that in all these examples, <b>posts</b> array contains Mongorito models, so you can do usual operations with them. Keep reading ;-)</p>
+		<a name="creating" href="#creating"><h2>Creating</h2></a>
+		<p>Let's create some new documents in our <b>posts</b> collection:</p>
+		<pre class="prettyprint linenums">
+post = new Post
+post.title = 'I love Apple'
+post.author = 'Steve'
+post.body = 'Who does not like Apple?'
+post.save ->
+	# post saved
+</pre>
+		<p>Notice, that you don't need to declare fields in the model, Mongorito automatically detects what belongs to you, and what is not.</p>
+		<a name="updating" href="#updating"><h2>Updating</h2></a>
+		<p>Updating the document is as easy as creating it:</p>
+		<pre class="prettyprint linenums">
+Post.find title: 'I love Apple', (err, posts) ->
+	post = posts[0] # let's take the first one
+	post.title = 'I love Apple more than Microsoft'
+	post.save ->
+		# post updated
+</pre>
+		<a name="removing" href="#removing"><h2>Removing</h2></a>
+		<pre class="prettyprint linenums">
+Post.find title: 'I love Apple', (err, posts) ->
+	posts[0].remove ->
+		# post removed
+</pre>
+		<a name="hooking" href="#hooking"><h2>Hooking</h2></a>
+		<p>Mongorito provides you with such hooks as: beforeCreate, afterCreate, aroundCreate, beforeUpdate, afterUpdate, aroundUpdate. Let me know if you need more, I'll add them.</p>
+		<pre class="prettyprint linenums">
+class Post
+	constructor: ->
+		super 'posts'
+	
+	beforeCreate: -> # before creating
+	
+	afterCreate: -> # after creating
+	
+	aroundCreate: -> # before and after creating(double execution)
+	
+	beforeUpdate: -> # before updating
+	
+	afterUpdate: -> # after updating
+	
+	aroundUpdate: -> # before and after updating
+
+Post = Mongorito.bake Post
+</pre>
+		<a name="validating" href="#validating"><h2>Validating</h2></a>
+		<p>Mongorito supports only <b>async</b> validations, sorry.</p>
+		<pre class="prettyprint linenums">
+class Tweet
+	constructor: ->
+		super 'tweets'
+
+	validateBody: (callback) -> # you should pass false, if invalid and true, if valid
+		if @body.length >= 140
+			callback false
+		else
+			callback true
+
+Tweet = Mongorito.bake Tweet
+
+tweet = new Tweet
+tweet.body = 'I want to be super-super-super-super long! Reallly, reallly, long!!!! In fact, I am VEEERY long! You\'ve never seen such a looooooong tweeeeeet!'
+tweet.save (err, results) ->
+	# results will be ['body'], because body field did not pass validation
+</pre>
+		<a name="caching" href="#caching"><h2>Caching</h2></a>
+		<p>Mongorito offers built-in caching via <a href="https://github.com/vdemedes/Memcacher">Memcacher</a>, which adds tags functionality to memcached, without modifying it. To force Mongorito to cache documents automatically, you need to write just one line:</p>
+		<pre class="prettyprint linenums">
+Mongorito.cache ['127.0.0.1:11211'] # array of memcached servers
+</pre>
 	</div>
 	<script src="scripts/prettify.js"></script>
 </body>
