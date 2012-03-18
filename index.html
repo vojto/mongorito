@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Mongorito - MongoDB ODM for Node.js</title>
+	<link href="http://twitter.github.com/bootstrap/assets/js/google-code-prettify/prettify.css" rel="stylesheet">
+	<link href="stylesheets/bootstrap.min.css" rel="stylesheet">
+</head>
+<body onload="prettyPrint()">
+	<div class="container">
+		<h1>Mongorito</h1>
+		<a class="btn btn-primary" href="http://search.npmjs.org/#/mongorito">NPM</a>
+		<a class="btn btn-info" href="https://github.com/vdemedes/mongorito">Github</a>
+		<a class="btn" href="http://twitter.com/vdemedes">Twitter</a>
+		<hr>
+		<p>
+			Easy-to-work-with MongoDB ODM for Node.js. Built-in caching with <b>memcached</b>. Clean codebase.
+		</p>
+		<h2>Features</h2>
+		<ul>
+			<li>Define models, and operate with them with human-understandable methods, forget about documentation</li>
+			<li>Built-in caching, using <a href="https://github.com/vdemedes/memcacher">Memcacher</a></li>
+			<li>Based on <a href="https://github.com/marcello3d/node-mongolian">Mongolian</a></li>
+			<li>Super-fast, lightweight, all codebase is in one file</li>
+			<li>Covered by tests</li>
+			<li>Active development</li>
+		</ul>
+		<h2>Installation</h2>
+		<code>npm install mongorito</code>
+		<h2>Usage</h2>
+		<pre class="prettyprint linenums">
+Mongorito = require 'mongorito'
+
+Mongorito.connect 'database', ['127.0.0.1:27017'], 'user', 'password'
+Mongorito.cache ['127.0.0.1:11211'] # optional, allows automatic, smart caching. It is just one line to enable it!
+
+class Post
+    constructor: ->
+        super 'posts' # telling our collection name
+
+Post = Mongorito.bake Post # Now, we are ready to go!
+
+post = new Post
+post.title = 'Very interesting article.'
+post.content = 'Really, really, exciting.'
+post.save (err) ->
+    # saved!
+
+    post.title = 'Edited title!'
+    post.save (err) ->
+        # updated!
+
+        post.remove ->
+            # removed!
+
+Post.find { title : 'Some title!' }, (err, posts) ->
+    for post in posts
+        # post is an instance of Post model, so you can perform usual methods on it
+        post.remove ->
+</pre>
+		<div class="docs clearfix clear">
+			<h2 style="float:left;position:relative;top:-25px;margin-right:20px">Documentation</h2>
+			<div class="btn-group">
+				<a href="#finding" class="btn">Finding</a>
+				<a href="#" class="btn">Creating</a>
+				<a href="#" class="btn">Updating</a>
+				<a href="#" class="btn">Removing</a>
+			</div>
+		</div>
+		<a name="finding" href="#finding"><h2>Finding</h2></a>
+		<p>Let's take a walk and see how can you find documents, sort, limit and skip some of them. First, let's just find some documents without additional requirements:</p>
+		<pre class="prettyprint linenums">
+Post.find (err, posts) ->
+	# posts is an array of all documents in the "posts" collection
+</pre>
+		<p>Now, let's add some criteria:</p>
+		<pre class="prettyprint linenums">
+Post.find { title: 'I love Apple' }, (err, posts) ->
+	# posts is an array of all documents, who have "I love Apple" title
+</pre>
+	</div>
+	<script src="scripts/prettify.js"></script>
+</body>
+</html>
