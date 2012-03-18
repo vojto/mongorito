@@ -124,6 +124,8 @@ class MongoritoModel
 		query = (id, done) ->
 			Client.collection(that.collection).find({ _id: new mongolian.ObjectId(id.toString()) }).toArray (err, items) ->
 				process.nextTick ->
+					for item in items
+						item._id = item._id.toString()
 					done err, items
 		
 		if not Cache
@@ -137,12 +139,12 @@ class MongoritoModel
 			if not result
 				query id, (err, items) ->
 					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
-					models = that.bakeModelsFromItems items, that.model
-					process.nextTick ->
-						callback err, models
+						process.nextTick ->
+							models = that.bakeModelsFromItems items, that.model
+							callback err, models
 			else
-				models = that.bakeModelsFromItems JSON.parse(result), that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems JSON.parse(result), that.model
 					callback err, models
 	
 	@findWithOrderAndLimit: (criteria, order, limit, skip, callback) ->
@@ -166,12 +168,14 @@ class MongoritoModel
 		
 		query = (criteria, order, limit, skip, done) ->
 			Client.collection(that.collection).find(criteria).sort(order).limit(limit).skip(skip).toArray (err, items) ->
+				for item in items
+					item._id = item._id.toString()
 				done err, items
 		
 		if not Cache
 			return query criteria, order, limit, skip, (err, items) ->
-				models = that.bakeModelsFromItems items, that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems items, that.model
 					callback err, models
 		
 		key = "#{ @collection }-order-#{ order }-limit-#{ limit }-skip-#{ skip }-#{ JSON.stringify(criteria) }"
@@ -180,12 +184,12 @@ class MongoritoModel
 			if not result
 				query criteria, order, limit, skip, (err, items) ->
 					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
-					models = that.bakeModelsFromItems items, that.model
-					process.nextTick ->
-						callback err, models
+						process.nextTick ->
+							models = that.bakeModelsFromItems items, that.model
+							callback err, models
 			else
-				models = that.bakeModelsFromItems JSON.parse(result), that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems JSON.parse(result), that.model
 					callback err, models
 	
 	@findWithOrder: (criteria, order, callback) ->
@@ -199,12 +203,14 @@ class MongoritoModel
 		
 		query = (criteria, order, done) ->
 			Client.collection(that.collection).find(criteria).sort(order).toArray (err, items) ->
+				for item in items
+					item._id = item._id.toString()
 				done err, items
 		
 		if not Cache
 			return query criteria, order, (err, items) ->
-				models = that.bakeModelsFromItems items, that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems items, that.model
 					callback err, models
 		
 		key = "#{ @collection }-order-#{ order }-#{ JSON.stringify(criteria) }"
@@ -213,12 +219,12 @@ class MongoritoModel
 			if not result
 				query criteria, order, (err, items) ->
 					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
-					models = that.bakeModelsFromItems items, that.model
-					process.nextTick ->
-						callback err, models
+						process.nextTick ->
+							models = that.bakeModelsFromItems items, that.model
+							callback err, models
 			else
-				models = that.bakeModelsFromItems JSON.parse(result), that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems JSON.parse(result), that.model
 					callback err, models
 	
 	@findWithLimit: (criteria, limit, skip, callback) ->
@@ -244,13 +250,14 @@ class MongoritoModel
 		
 		query = (criteria, limit, skip, done) ->
 			Client.collection(that.collection).find(criteria).limit(limit).skip(skip).toArray (err, items) ->
-				process.nextTick ->
-					done err, items
+				for item in items
+					item._id = item._id.toString()
+				done err, items
 		
 		if not Cache
 			return query criteria, limit, skip, (err, items) ->
-				models = that.bakeModelsFromItems items, that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems items, that.model
 					callback err, models
 		
 		key = "#{ @collection }-limit-#{ limit }-skip-#{ skip }-#{ JSON.stringify(criteria) }"
@@ -259,12 +266,12 @@ class MongoritoModel
 			if not result
 				query criteria, limit, skip, (err, items) ->
 					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
-					models = that.bakeModelsFromItems items, that.model
-					process.nextTick ->
-						callback err, models
+						process.nextTick ->
+							models = that.bakeModelsFromItems items, that.model
+							callback err, models
 			else
-				models = that.bakeModelsFromItems JSON.parse(result), that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems JSON.parse(result), that.model
 					callback err, models
 	
 	@find: (criteria = {}, callback) ->
@@ -276,13 +283,14 @@ class MongoritoModel
 		
 		query = (criteria, done) ->
 			Client.collection(that.collection).find(criteria).toArray (err, items) ->
-				process.nextTick ->
-					done err, items
+				for item in items
+					item._id = item._id.toString()
+				done err, items
 		
 		if not Cache
 			return query criteria, (err, items) ->
-				models = that.bakeModelsFromItems items, that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems items, that.model
 					callback err, models
 		
 		key = "#{ @collection }-#{ JSON.stringify(criteria) }"
@@ -290,13 +298,13 @@ class MongoritoModel
 		Cache.get key, (err, result) ->
 			if not result
 				query criteria, (err, items) ->
-					models = that.bakeModelsFromItems items, that.model
 					Cache.set key, JSON.stringify(items), 2592000, [that.collection], ->
 						process.nextTick ->
+							models = that.bakeModelsFromItems items, that.model
 							callback err, models
 			else
-				models = that.bakeModelsFromItems JSON.parse(result), that.model
 				process.nextTick ->
+					models = that.bakeModelsFromItems JSON.parse(result), that.model
 					callback err, models
 	
 	save: (callback) ->

@@ -9,7 +9,6 @@
 - Based on Mongolian
 - Super-fast, lightweight, all codebase is in one file
 - Covered by tests
-- Used in production projects
 - Active development
 
 # Installation
