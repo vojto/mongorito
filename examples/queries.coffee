@@ -22,7 +22,7 @@ Post.find limit: 5, skip: 2, (err, posts) -> # getting only 5 posts, skipping fi
 
 Post.find author: 'Drew', limit: 5, skip: 2, (err, posts) -> # getting only 5 posts, skipping first 2, with author = Drew
 
-Post.find sort: _id: -1 (err, posts) -> # getting posts, sorted by _id
+Post.find sort: _id: -1, (err, posts) -> # getting posts, sorted by _id
 
 Post.find limit: 5, sort: _id: -1, (err, posts) -> # getting first 5 posts, sorted by _id
 

@@ -2,7 +2,7 @@ var Mongorito, Post;
 
 Mongorito = require('../lib/mongorito');
 
-Mongorito.connect('databaseName', ['127.0.0.1:27017']);
+Mongorito.connect(['mongo://127.0.0.1:27017/databaseName']);
 
 Post = (function() {
 
@@ -30,32 +30,52 @@ Post.find({
   title: 'Nice title!'
 }, function(err, posts) {});
 
-Post.findWithLimit(5, function(err, posts) {});
-
-Post.findWithLimit({
-  author: 'Drew'
-}, 5, function(err, posts) {});
-
-Post.findWithLimit(5, 2, function(err, posts) {});
-
-Post.findWithLimit({
-  author: 'Drew'
-}, 5, 2, function(err, posts) {});
-
-Post.findWithOrder({
-  _id: -1
+Post.find({
+  limit: 5
 }, function(err, posts) {});
 
-Post.findWithOrderAndLimit({
-  _id: -1
-}, 5, function(err, posts) {});
+Post.find({
+  author: 'Drew',
+  limit: 5
+}, function(err, posts) {});
 
-Post.findWithOrderAndLimit({
-  _id: -1
-}, 5, 2, function(err, posts) {});
+Post.find({
+  limit: 5,
+  skip: 2
+}, function(err, posts) {});
 
-Post.findWithOrderAndLimit({
-  author: 'Drew'
-}, {
-  _id: -1
-}, 5, 2, function(err, posts) {});
+Post.find({
+  author: 'Drew',
+  limit: 5,
+  skip: 2
+}, function(err, posts) {});
+
+Post.find({
+  sort: {
+    _id: -1
+  }
+}, function(err, posts) {});
+
+Post.find({
+  limit: 5,
+  sort: {
+    _id: -1
+  }
+}, function(err, posts) {});
+
+Post.find({
+  limit: 5,
+  skip: 2,
+  sort: {
+    _id: -1
+  }
+}, function(err, posts) {});
+
+Post.find({
+  limit: 5,
+  skip: 2,
+  author: 'Drew',
+  sort: {
+    _id: -1
+  }
+}, function(err, posts) {});
