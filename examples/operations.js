@@ -2,7 +2,7 @@ var Mongorito, Post, post;
 
 Mongorito = require('../lib/mongorito');
 
-Mongorito.connect('databaseName', ['127.0.0.1:27017']);
+Mongorito.connect(['mongo://127.0.0.1:27017/databaseName']);
 
 Post = (function() {
 

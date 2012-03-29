@@ -22,8 +22,8 @@ npm install mongorito
 ```coffee-script
 Mongorito = require 'mongorito'
 
-Mongorito.connect 'database', ['127.0.0.1:27017'], 'user', 'password'
-Mongorito.cache ['127.0.0.1:11211'] # optional, allows automatic, smart caching. It is just one line to enable it!
+Mongorito.connect ['mongo://user:password@127.0.0.1:27017/databaseName']
+Mongorito.cache ['127.0.0.1:11211'] # optional, allows automatic caching. It is just one line to enable it!
 
 class Post
 	constructor: ->
@@ -44,7 +44,7 @@ post.save (err) ->
 		post.remove ->
 			# removed!
 
-Post.find { title : 'Some title!' }, (err, posts) ->
+Post.find title : 'Some title!', (err, posts) ->
 	for post in posts
 		# post is an instance of Post model, so you can perform usual methods on it
 		post.remove ->
@@ -56,12 +56,12 @@ Check out **examples** folder, it has a lot of code, which describes all parts o
 
 # For pure JS folks
 
-Nothing special, you will just have to use dirtier syntax, but that's ok.
+Honestly, Mongorito was not developed with "JS" in mind. Mongorito is for CoffeeScript developers. But, in case you have no other choice:
 
 ```javascript
 var Mongorito = require('mongorito');
 
-Mongorito.connect('database', ['127.0.0.1:27017'], 'user', 'password');
+Mongorito.connect(['mongo://user:password@127.0.0.1:27017/databaseName']);
 Mongorito.cache(['127.0.0.1:11211']);
 
 var Post = (function(){
@@ -99,7 +99,7 @@ Post.find(function(err, posts){
 Tests made using Mocha. Run using:
 
 ```
-cd tests && mocha *
+mocha
 ```
 
 
