@@ -31,7 +31,7 @@
 		<pre class="prettyprint linenums">
 Mongorito = require 'mongorito'
 
-Mongorito.connect 'database', ['127.0.0.1:27017'], 'user', 'password'
+Mongorito.connect ['mongo://user:password@127.0.0.1:27017/databaseName']
 Mongorito.cache ['127.0.0.1:11211'] # optional, allows automatic, smart caching. It is just one line to enable it!
 
 class Post
@@ -53,7 +53,7 @@ post.save (err) ->
         post.remove ->
             # removed!
 
-Post.find { title : 'Some title!' }, (err, posts) ->
+Post.find title : 'Some title!', (err, posts) ->
     for post in posts
         # post is an instance of Post model, so you can perform usual methods on it
         post.remove ->
@@ -79,7 +79,7 @@ Post.find { title : 'Some title!' }, (err, posts) ->
 		<pre class="prettyprint linenums">
 Mongorito = require 'Mongorito'
 
-Mongorito.connect 'databaseName', ['127.0.0.1:27017'], 'user', 'password' # array can contain uris to multiple servers
+Mongorito.connect ['mongo://user:password@127.0.0.1:27017/databaseName'] # array can contain uris to multiple servers
 </pre>
 		<a name="defining" href="#defining"><h2>Defining</h2></a>
 		<p>You can define model this way:</p>
@@ -103,20 +103,20 @@ Post.find title: 'I love Apple', (err, posts) ->
 </pre>
 		<p>What if we want to sort documents by their creation date?</p>
 		<pre class="prettyprint linenums">
-Post.findWithOrder _id: -1, (err, posts) ->
+Post.find sort: _id: -1, (err, posts) ->
 	# posts is an array of all documents, sorted by _id
 </pre>
 		<p>Of course, sometimes we have to limit our results and do some pagination:</p>
 		<pre class="prettyprint linenums">
-Post.findWithLimit 5, 2, (err, posts) ->
+Post.find limit: 5, skip: 2, (err, posts) ->
 	# skipping first 2 documents, and getting only 5
 
-Post.findWithLimit title: 'I love Apple', 5, 2, (err, posts) ->
+Post.find title: 'I love Apple', limit: 5, skip: 2, (err, posts) ->
 	# skipping first 2, getting only 5 documents who have title "I love Apple"
 </pre>
 		<p>And sometimes we have to order and limit:</p>
 		<pre class="prettyprint linenums">
-Post.findWithOrderAndLimit { author: 'Steve' }, { _id: -1 }, 5, 2, (err, posts) ->
+Post.find author: 'Steve', limit: 5, skip: 2, sort: _id: -1, (err, posts) ->
 	# finding documents with author "Steve", sorting them by _id, skipping first 2 and limiting result to 5 records
 </pre>
 		<p>Forgot to mention, that in all these examples, <b>posts</b> array contains Mongorito models, so you can do usual operations with them. Keep reading ;-)</p>
