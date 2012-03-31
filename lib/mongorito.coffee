@@ -98,7 +98,7 @@ class MongoritoModel
 		Cache.get key, (err, result) ->
 			if not result
 				query (err, items) ->
-					Cache.set key, JSON.stringify(items), 2592000, [that.collectionName], ->
+					Cache.set key, JSON.stringify(items), 86400, [that.collectionName], ->
 						models = that.bakeModelsFromItems items, that.model
 						callback err, models
 			else
