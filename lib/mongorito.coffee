@@ -44,12 +44,18 @@ class Mongorito
 
 class MongoritoModel
 	constructor: (@collectionName = '') ->
+
+	@_notFields: ['constructor', 'save', 'collectionName', 'create', 'fields', 'update', 'remove', 'beforeCreate', 'aroundCreate', 'afterCreate', 'beforeUpdate', 'aroundUpdate', 'afterUpdate']
+
+	_isField: (field) ->
+		return false if field.substr(0, 1) == '_'
+		return false if @constructor._notFields.indexOf(field) != -1
+		true
 	
 	fields: ->
-		notFields = ['constructor', 'save', 'collectionName', 'create', 'fields', 'update', 'remove', 'beforeCreate', 'aroundCreate', 'afterCreate', 'beforeUpdate', 'aroundUpdate', 'afterUpdate']
 		fields = {}
 		for field of @
-			fields[field] = @[field] if -1 is notFields.indexOf field
+			fields[field] = @[field] if @_isField(field)
 		fields
 	
 	@bakeModelsFromItems: (items, _model) ->
@@ -116,15 +122,13 @@ class MongoritoModel
 	save: (callback) ->
 		that = @
 		fields = do @fields
-		# operation = if fields._id then "update" else "create"
-		operation = "update"
+		operation = if fields._id then "update" else "create"
 
 		@_triggerBefore(operation)
 
-		notFields = ['constructor', 'save', 'collectionName', 'create', 'fields', 'update', 'remove', 'models']
 		keys = []
 		for field of @
-			keys.push field if -1 is notFields.indexOf field
+			keys.push field if @_isField(field)
 		
 		async.filter keys, (key, nextKey) ->
 			if that["validate#{ inflect.camelize key }"]
@@ -134,7 +138,7 @@ class MongoritoModel
 				nextKey false
 		, (results) ->
 			return callback yes, results if results.length > 0
-			
+
 			performOperation = -> that[operation](callback, yes)
 
 			if Cache then Cache.delByTag that.collectionName, performOperation else do performOperation
