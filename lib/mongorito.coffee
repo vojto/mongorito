@@ -54,8 +54,10 @@ class MongoritoModel
 	
 	fields: ->
 		fields = {}
-		for field of @
-			fields[field] = @[field] if @_isField(field)
+		for field, value of @
+			continue unless @_isField(field)
+			continue if typeof value is 'function'
+			fields[field] = value
 		fields
 	
 	@bakeModelsFromItems: (items, _model) ->
