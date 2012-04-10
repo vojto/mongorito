@@ -45,7 +45,7 @@ class Mongorito
 class MongoritoModel
 	constructor: (@collectionName = '') ->
 
-	@_notFields: ['constructor', 'save', 'collectionName', 'create', 'fields', 'update', 'remove', 'beforeCreate', 'aroundCreate', 'afterCreate', 'beforeUpdate', 'aroundUpdate', 'afterUpdate']
+	@_notFields: ['constructor', 'save', 'collectionName', 'create', 'fields', 'update', 'remove', 'beforeCreate', 'aroundCreate', 'afterCreate', 'beforeUpdate', 'aroundUpdate', 'afterUpdate', 'load']
 
 	_isField: (field) ->
 		return false if field.substr(0, 1) == '_'
@@ -187,6 +187,10 @@ class MongoritoModel
 			Cache.delByTag @collectionName, query
 		else
 			do query
+	
+	load: (data) ->
+		for key, value of data
+			@[key] = value
 
 module.exports=
 	connect: Mongorito.connect
