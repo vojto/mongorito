@@ -48,7 +48,7 @@ class MongoritoModel
 	@_notFields: ['constructor', 'save', 'collectionName', 'create', 'fields', 'update', 'remove', 'beforeCreate', 'aroundCreate', 'afterCreate', 'beforeUpdate', 'aroundUpdate', 'afterUpdate', 'load']
 
 	_isField: (field) ->
-		return false if field.substr(0, 1) == '_'
+		return false if field != "_id" && field.substr(0, 1) == '_'
 		return false if @constructor._notFields.indexOf(field) != -1
 		true
 	
