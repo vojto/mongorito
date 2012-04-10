@@ -7,7 +7,7 @@ Cache = undefined
 
 `
 var hasProp = Object.prototype.hasOwnProperty,
-  	extendsClass = function(child, parent) {
+		extendsClass = function(child, parent) {
 		for (var key in parent) {
 			if (hasProp.call(parent, key)) child[key] = parent[key]; 
 		}
@@ -106,19 +106,20 @@ class MongoritoModel
 				callback err, models
 	
 	_triggerBefore: (operation) ->
-	  if operation == "update"
-		  do @beforeUpdate if @['beforeUpdate']
-  		do @aroundUpdate if @['aroundUpdate']
+		if operation == "update"
+			do @beforeUpdate if @['beforeUpdate']
+			do @aroundUpdate if @['aroundUpdate']
 		else
-		  do @beforeCreate if @['beforeCreate']
-  		do @aroundCreate if @['aroundCreate']
+			do @beforeCreate if @['beforeCreate']
+			do @aroundCreate if @['aroundCreate']
 	
 	save: (callback) ->
 		that = @
 		fields = do @fields
-		operation = if fields._id then "update" else "create"
+		# operation = if fields._id then "update" else "create"
+		operation = "update"
 
-  	@_triggerBefore(operation)
+		@_triggerBefore(operation)
 
 		notFields = ['constructor', 'save', 'collectionName', 'create', 'fields', 'update', 'remove', 'models']
 		keys = []
@@ -152,8 +153,8 @@ class MongoritoModel
 			callback err, result if callback
 		
 	update: (callback, fromSave = no) ->
-	  @_triggerBefore("create") unless fromSave
-	  
+		@_triggerBefore("update") unless fromSave
+		
 		object = @fields()
 		_id = new mongolian.ObjectId object._id
 		delete object._id
