@@ -105,10 +105,21 @@ class MongoritoModel
 				models = that.bakeModelsFromItems JSON.parse(result), that.model
 				callback err, models
 	
+	_triggerBefore: (operation) ->
+	  if operation == "update"
+		  do @beforeUpdate if @['beforeUpdate']
+  		do @aroundUpdate if @['aroundUpdate']
+		else
+		  do @beforeCreate if @['beforeCreate']
+  		do @aroundCreate if @['aroundCreate']
+	
 	save: (callback) ->
 		that = @
 		fields = do @fields
-		
+		operation = if fields._id then "update" else "create"
+
+  	@_triggerBefore(operation)
+
 		notFields = ['constructor', 'save', 'collectionName', 'create', 'fields', 'update', 'remove', 'models']
 		keys = []
 		for field of @
@@ -123,20 +134,15 @@ class MongoritoModel
 		, (results) ->
 			return callback yes, results if results.length > 0
 			
-			performOperation = ->
-				if fields._id
-					that.update callback, yes
-				else
-					that.create callback, yes
-			
+			performOperation = -> that[operation](callback, yes)
+
 			if Cache then Cache.delByTag that.collectionName, performOperation else do performOperation
 		
 	create: (callback, fromSave = no) ->
 		object = @fields()
-		
-		do @beforeCreate if @['beforeCreate']
-		do @aroundCreate if @['aroundCreate']
 		that = @
+		
+		@_triggerBefore("create") unless fromSave
 		
 		Client.collection(@collectionName).insert object, (err, result) ->
 			result._id = result._id.toString()
@@ -146,12 +152,12 @@ class MongoritoModel
 			callback err, result if callback
 		
 	update: (callback, fromSave = no) ->
+	  @_triggerBefore("create") unless fromSave
+	  
 		object = @fields()
 		_id = new mongolian.ObjectId object._id
 		delete object._id
-		
-		do @beforeUpdate if @['beforeUpdate']
-		do @aroundUpdate if @['aroundUpdate']
+
 		that = @
 		
 		Client.collection(@collectionName).update { _id: _id }, object, (err, rowsUpdated) ->
